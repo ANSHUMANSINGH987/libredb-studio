@@ -633,6 +633,16 @@ A config write made during the run from outside the provider, setting `orders` t
 #### Redpanda
 
 Redpanda v26.2.2 is a full relative of this provider ([README](./README.md#wire-compatible-engines)): every surface answered, with data wherever Kafka held data, and the broker's state was unchanged by the run.
+Measured again on 2026-09-27: every check passed on `redpanda`, and the broker's state was unchanged.
+As on Kafka, Studio never produces, commits an offset, joins a group or creates a topic there ([§3.2](#32-read-only-by-construction-k4)).
+
+A Redpanda cluster is a connection of type Apache Kafka: once that type is chosen, the dialog names Redpanda as a verified relative.
+The host and port are those of a Kafka listener Redpanda advertises to where Studio runs, such as the fixture's `external` listener on 29092, because the client connects next to the advertised address, not to the one typed ([§4.4](#44-the-broker-chooses-where-studio-connects-next)).
+SASL and TLS take the fields of [§4.1](#41-configuration-fields) to [§4.3](#43-tls); the runs above used neither, and SCRAM over TLS was measured on Apache Kafka's `kafka-auth` fixture, not on Redpanda.
+Nothing was measured on Redpanda Cloud (Serverless, BYOC or Dedicated), so no claim here covers it.
+
+Measured in a browser against the published `@libredb/studio@0.17.0` on 2026-09-27: the tree listed the topics, consumer groups and brokers, a topic click read its latest records, and a group's committed offsets and lag equalled the broker's own `rpk`.
+
 Four things read differently from Kafka.
 Max connections reads 0, no limit published, because Redpanda's DescribeConfigs answer for a broker holds no `max.connections`.
 That answer holds nine entries where Kafka 4.3.1's holds 340, so a broker's source is short.
