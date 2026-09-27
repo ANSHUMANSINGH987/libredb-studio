@@ -1114,13 +1114,20 @@ edge one. Omitted, the same panels render `N/A` / "Not measured" and score the c
 
 ## 8. Maintenance
 
-`runMaintenance(type, target?)`
+`runMaintenance(type, target?, container?)`
 ([`index.ts`](../../src/lib/db/providers/document/couchbase/index.ts)). All three operations
 **require** a target.
 
+A `container` is the row's `schemaName` (#772), and the keyspace it addresses is decided from it:
+the bucket's own name (the only Tables row this provider has, `getTableStats()`) means the
+bucket's default collection, so the row's Analyze button addresses `` `bucket`.`_default`.`_default` ``
+rather than a scope that does not exist; any other container is the SCOPE the collection sits in,
+used as one instead of being parsed back out of the display name. Without a container the
+display-name rule stands: `scope.collection`, or the default scope for a bare name.
+
 | Type | Couchbase action | Notes |
 |------|------------------|-------|
-| `analyze` | `UPDATE STATISTICS FOR <keyspace> INDEX ALL` | **Enterprise Edition only.** A Community cluster answers "'Update Statistics' is an enterprise level feature." — returned verbatim as a failed result, not swallowed or reworded |
+| `analyze` | `UPDATE STATISTICS FOR <keyspace> INDEX ALL` | **Enterprise Edition only.** A Community cluster answers "'Update Statistics' is an enterprise level feature.", returned verbatim as a failed result, not swallowed or reworded. The success reply names the same keyspace the statement addressed (``Updated statistics for `travel`.`inventory`.`hotel` ``), so a row whose target is the bucket cannot report as if the bucket itself had been touched (#1091 review) |
 | `reindex` | `BUILD INDEX ON <keyspace>(...)` over the keyspace's deferred indexes | Reports "No deferred indexes on X" when there are none |
 | `kill` | `DELETE FROM system:active_requests WHERE requestId = $1` | Target is the request id shown in active sessions |
 
