@@ -1056,6 +1056,16 @@ states what "done" looks like as a command you can run yourself.
 Distributed under the MIT License. See `LICENSE` for more information. One direct dependency,
 `elkjs`, is under the reciprocal EPL-2.0; see [`docs/THIRD_PARTY_LICENSES.md`](docs/THIRD_PARTY_LICENSES.md).
 
+## Trademarks
+
+Apache, [Apache Kafka](https://kafka.apache.org/), Kafka, [Apache Cassandra](https://cassandra.apache.org/),
+Cassandra, [Apache Druid](https://druid.apache.org/), Druid, [Apache Doris](https://doris.apache.org/),
+Doris, [Apache Cloudberry](https://cloudberry.apache.org/), Cloudberry and the Apache feather logo are
+either registered trademarks or trademarks of [The Apache Software Foundation](https://www.apache.org/)
+in the United States and/or other countries. LibreDB Studio has no affiliation with and is not
+endorsed by The Apache Software Foundation. All other product names are trademarks of their
+respective owners and are used here only to name the systems LibreDB Studio connects to.
+
 ---
 
 <p align="center">
