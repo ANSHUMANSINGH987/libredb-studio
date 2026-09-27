@@ -51,10 +51,14 @@ What gets mailed is `pcsc-listing.html` beside this file, not the sections below
 > no listing may say the assistant writes SQL from a plain-English question. What ships is
 > AI query *explanation*, and it is **not** available on any connection: the write-up is
 > derived from the engine's own `EXPLAIN` plan, and `src/components/studio/BottomPanel.tsx`
-> drops the Explain tab unless the provider declares `explainFormat`. Seven do — PostgreSQL,
-> MySQL, SQLite, Couchbase, ClickHouse, Apache Druid and Trino — so name that set rather
-> than a count, and check it by grepping `explainFormat:` under `src/lib/db/providers/` rather
-> than by trusting this line. Alongside it is the read-only agent rail
+> drops the Explain tab unless the provider declares `explainFormat`. Nine do — PostgreSQL,
+> MySQL, SQLite, libSQL, DuckDB, Couchbase, ClickHouse, Apache Druid and Trino — so name that
+> set rather than a count, and check it by grepping `explainFormat:` under
+> `src/lib/db/providers/` rather than by trusting this line. Keep the colon: without it the
+> search provider's own account of why it declares none is counted as a declaration, and the
+> answer comes back as ten. PostgreSQL and MySQL spread the value in from a connect-time
+> probe instead of writing a literal, which is why `DECLARES_EXPLAIN_FORMAT` in
+> `tests/unit/marketplace-copy.test.ts` carries a second alternative for them. Alongside it is the read-only agent rail
 > ([`docs/AGENT.md`](https://github.com/libredb/libredb-studio/blob/main/docs/AGENT.md)),
 > which executes statements on PostgreSQL, SQLite, DuckDB and SQL Server only (`queryReadOnly`
 > exists on those four providers alone), with the database and not the IDE refusing the write. Do
