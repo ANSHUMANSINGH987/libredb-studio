@@ -132,15 +132,13 @@ import type { CouchbaseRow, Keyspace } from "./transport";
 /**
  * Couchbase's identity for the shared container-path renderer.
  *
- * `shapes: "prefixes"`: every depth up to the declaration is a real address here, because a
- * caller may name only the outer levels. A path longer than the declaration is still refused.
+ * Which paths this engine accepts is not a field here: it is `containerPathShapes` in
+ * `getCapabilities()` (`./index.ts`), which the object routes read too (#1147).
  */
 const COUCHBASE_CONTAINER_PATH_ENGINE: ContainerPathShapeEngine = {
   code: "couchbase",
   label: "A Couchbase",
   shapeNames: "label",
-  shapes: "prefixes",
-  emptyShapes: "nothing: this declaration carries no container level",
 };
 
 // ============================================================================
@@ -177,12 +175,12 @@ export const COUCHBASE_OBJECT_KINDS: readonly ObjectKindSpec[] = Object.freeze([
     // collection is an ordinary `UPSERT`. See `kindAcceptsRowWrites()` in object-kinds.ts.
     acceptsRowWrites: true,
     // The ONE kind here with columns, and it is the same fact `describeObject` gates on:
-    // it answers three empty arrays for anything whose role is not `relation`
-    // (couchbase/index.ts:803-804). A collection's columns are INFERRED from a document
-    // sample rather than read from a schema, so an empty collection (error 7014) and an
-    // INFER the caller has no SELECT grant for both answer no column and no error
-    // (couchbase/introspect.ts:200-215); the tree reports that open row as having none
-    // rather than treating it as a failure.
+    // `CouchbaseProvider.describeObject` (`couchbase/index.ts`) answers three empty arrays
+    // for anything whose role is not `relation`. A collection's columns are INFERRED from a
+    // document sample rather than read from a schema, so an empty collection (error 7014)
+    // and an INFER the caller has no SELECT grant for both answer no column and no error
+    // (`inferColumns` in `couchbase/introspect.ts`); the tree reports that open row as
+    // having none rather than treating it as a failure.
     hasColumns: true,
   },
   {
@@ -411,6 +409,18 @@ function requiredSegment(
     throw new QueryError(`A Couchbase path needs a "${level}" container level and a segment for it`, "couchbase");
   }
   return segment;
+}
+
+/**
+ * The catalog segment of a listing parent, read as a tree CURSOR and not as an address.
+ *
+ * `listContainers()` takes a parent to say where in the tree to list, and the route holds a
+ * parent to the depth ceiling alone. `containerPathShapes` governs the paths an object read
+ * ADDRESSES, so running `assertContainerPathShape` here would refuse a valid `[bucket]` the
+ * moment the declaration said `exact`, while the route had already accepted it.
+ */
+export function parentCatalog(capabilities: ProviderCapabilities, parent: readonly string[]): string {
+  return requiredSegment(containerSegments(capabilities, parent), "catalog");
 }
 
 /**

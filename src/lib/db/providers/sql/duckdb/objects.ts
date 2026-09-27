@@ -55,15 +55,13 @@ import type {
 /**
  * DuckDB's identity for the shared container-path renderer.
  *
- * `shapes: "prefixes"`: every depth up to the declaration is a real address here, because a
- * caller may name only the outer levels. A path longer than the declaration is still refused.
+ * Which paths this engine accepts is not a field here: it is `containerPathShapes` in
+ * `getCapabilities()` (`./index.ts`), which the object routes read too (#1147).
  */
 const DUCKDB_CONTAINER_PATH_ENGINE: ContainerPathShapeEngine = {
   code: "duckdb",
   label: "A DuckDB",
   shapeNames: "label",
-  shapes: "prefixes",
-  emptyShapes: "nothing: this declaration carries no container level",
 };
 
 // ============================================================================
@@ -768,6 +766,18 @@ function requiredSegment(
     throw new QueryError(`DuckDB declares no ${level} level to read this path's segment from`, "duckdb");
   }
   return segment;
+}
+
+/**
+ * The catalog segment of a listing parent, read as a tree CURSOR and not as an address.
+ *
+ * `listContainers()` takes a parent to say where in the tree to list, and the route holds a
+ * parent to the depth ceiling alone. `containerPathShapes` governs the paths an object read
+ * ADDRESSES, so running `assertContainerPathShape` here would refuse a valid `[database]` the
+ * moment the declaration said `exact`, while the route had already accepted it.
+ */
+export function parentCatalog(capabilities: ProviderCapabilities, parent: readonly string[]): string {
+  return requiredSegment(containerSegments(capabilities, parent), "catalog");
 }
 
 /** The one shape a DuckDB object path takes, spelled for the message in `objectRead()`. */
