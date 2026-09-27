@@ -1,7 +1,7 @@
 /**
- * Apache Trino provider, end to end (issue #424, Phase 2)
+ * Trino provider, end to end (issue #424, Phase 2)
  *
- * Every payload below was captured on 2026-08-20 from a live Apache Trino 476
+ * Every payload below was captured on 2026-08-20 from a live Trino 476
  * coordinator (catalogs `tpch`, `tpcds`, `memory`, `system`, `jmx`; the schema
  * tree read against `tpch`, statistics against `tpch.tiny`). `globalThis.fetch` is
  * REPLACED per test and restored afterwards - `mock.module()` is refused, being
@@ -107,7 +107,7 @@ function makeConnection(overrides: Partial<DatabaseConnection> = {}): DatabaseCo
 }
 
 // ============================================================================
-// Wire payloads (captured from Apache Trino 476 over POST /v1/statement)
+// Wire payloads (captured from Trino 476 over POST /v1/statement)
 // ----------------------------------------------------------------------------
 // The envelope below is `SELECT 1`'s own answer, verbatim, and `page()` rebuilds
 // exactly that shape around a different column declaration and a different row
