@@ -2463,10 +2463,15 @@ export type ObjectEditOutcome =
    * wraps its own transaction. `"rolled-back"` may be claimed ONLY by a provider that opened and
    * closed the transaction itself, which is `transactional-replace`.
    *
-   * There is NO `retryable` field on this type and no retry advice in it. MEASURED: a PostgreSQL
-   * DDL timeout answers HTTP 499 `QUERY_CANCELLED` "Query was cancelled", and Trino mints a
-   * `TimeoutError` directly (`trino/index.ts:680`) which the generic mapper answers 408
-   * `retryable: true`. A client that retries an apply whose disposition is unknown applies twice.
+   * There is NO `retryable` field on this type and no retry advice in it. MEASURED on the general
+   * query path (`POST /api/db/query`), which routes through `mapDatabaseError`: since #1145 a
+   * PostgreSQL statement timeout answers HTTP 408 `TIMEOUT_ERROR` `retryable: true`, the same as
+   * Trino, which mints a `TimeoutError` directly (`trino/index.ts:680`). The apply route
+   * (`edit-apply/route.ts`) deliberately does NOT inherit that 408: it always answers 200 and never
+   * carries a `retryable` flag, because a client that retries an apply whose disposition is unknown
+   * applies twice. A PostgreSQL apply-time timeout does not even reach this `interrupted` arm —
+   * `classifyApplyFailure` reads its SQLSTATE `57014`, which is not in `APPLY_VERDICT_BY_SQLSTATE`,
+   * so `verdict` is `undefined` and the outcome is `refused` with the `definition` class.
    */
   | {
       readonly outcome: "interrupted";
