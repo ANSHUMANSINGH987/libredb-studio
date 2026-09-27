@@ -2108,4 +2108,4 @@ the object tree's own routes under `POST /api/db/objects/*`
 - Errors (incl. `ORA-*` mapping): [`src/lib/db/errors.ts`](../../src/lib/db/errors.ts)
 - Tests: [`tests/integration/db/oracle-provider.test.ts`](../../tests/integration/db/oracle-provider.test.ts)
 - API contract: [`docs/API_DOCS.md`](../API_DOCS.md)
-- Sibling provider docs: [PostgreSQL](./postgres.md) · [MySQL](./mysql.md) · [Apache Trino](./trino.md) · [Redis](./redis.md)
+- Sibling provider docs: [PostgreSQL](./postgres.md) · [MySQL](./mysql.md) · [Trino](./trino.md) · [Redis](./redis.md)
