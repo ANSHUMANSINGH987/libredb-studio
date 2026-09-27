@@ -11,9 +11,8 @@ import { join } from "node:path";
  *
  * This test is the failure that was missing: it reads every `.tsx` under `src/`
  * and fails naming each file and line that carries the token, so the typo cannot
- * come back. It scans class attributes and comments alike — the issue counts a
- * comment-only occurrence (`MobileNav.tsx`) as a use, since a comment referencing
- * the typo stops explaining anything once no use is left.
+ * come back. It scans comments too: a comment that names the typo explains
+ * nothing once no use is left.
  */
 
 const ROOT = join(import.meta.dir, "..", "..");
