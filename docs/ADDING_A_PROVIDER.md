@@ -26,7 +26,7 @@ Three decisions. The first is the consequential one, which is why it is first.
    ([clickhouse.md](./providers/clickhouse.md)), Apache Druid over `POST /druid/v2/sql`
    ([druid.md](./providers/druid.md)), Elasticsearch and OpenSearch over their SQL endpoints
    ([elasticsearch.md](./providers/elasticsearch.md) · [opensearch.md](./providers/opensearch.md)),
-   Apache Trino over its own client protocol ([trino.md](./providers/trino.md)), libSQL over the
+   Trino over its own client protocol ([trino.md](./providers/trino.md)), libSQL over the
    Hrana protocol, `POST /v2/pipeline` ([libsql.md](./providers/libsql.md)), and Prometheus over its
    HTTP API, `/api/v1/*` ([prometheus.md](./providers/prometheus.md)). If it does need one, it
    will be something like `pg`,
@@ -38,7 +38,7 @@ Three decisions. The first is the consequential one, which is why it is first.
      `this.type` — identifier and string escaping, `LIMIT` clause building,
      read-only and DDL detection — plus a `prepareQuery()` that applies the shared query limiter.
      None of it touches a pool, a driver or a connection, so **an HTTP transport is no reason to
-     avoid it.** A standard-SQL engine reached over HTTP, such as ClickHouse, Apache Druid or Apache Trino,
+     avoid it.** A standard-SQL engine reached over HTTP, such as ClickHouse, Apache Druid or Trino,
      should extend it and get all of that for free. Druid is the clearest case of how little is left over:
      double-quoted identifiers and `LIMIT n OFFSET m` are both correct Druid SQL, so
      `escapeIdentifier()` and `buildLimitClause()` are inherited unchanged and `prepareQuery()` is
@@ -426,7 +426,7 @@ bun add <driver-package>
 # ClickHouse needs no driver — plain SQL over its HTTP interface (port 8123)
 # Apache Druid needs no driver — plain SQL over POST /druid/v2/sql (Router 8888 or Broker 8082)
 # Elasticsearch / OpenSearch need no driver — SQL over _sql / _plugins/_sql (port 9200)
-# Apache Trino needs no driver — SQL over its client protocol, POST /v1/statement (port 8080)
+# Trino needs no driver — SQL over its client protocol, POST /v1/statement (port 8080)
 # libSQL needs no driver — SQLite's dialect over the Hrana protocol, POST /v2/pipeline (port 8080)
 # bun add cassandra-driver  (Apache Cassandra — a binary protocol over TCP, so a driver is not
 #                            optional; this one is pure JS, which is the next best thing)
@@ -785,7 +785,7 @@ declares them. See [cassandra.md](./providers/cassandra.md).
 ([#263](https://github.com/libredb/libredb-studio/issues/263)), ClickHouse
 ([#264](https://github.com/libredb/libredb-studio/issues/264)), Apache Druid
 ([#265](https://github.com/libredb/libredb-studio/issues/265)), Elasticsearch + OpenSearch
-([#424](https://github.com/libredb/libredb-studio/issues/424), Phase 1) Apache Trino
+([#424](https://github.com/libredb/libredb-studio/issues/424), Phase 1) Trino
 ([#424](https://github.com/libredb/libredb-studio/issues/424), Phase 2) and Apache Cassandra
 ([#424](https://github.com/libredb/libredb-studio/issues/424), Phase 4 - the first phase to add a
 runtime dependency, and a pure-JS one).

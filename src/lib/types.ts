@@ -45,7 +45,7 @@ export type DatabaseType =
   // KEYSPACE, and `localDataCenter` is a field only this engine has - the driver
   // refuses to connect without it.
   | "cassandra"
-  // Apache Trino (issue #424 Phase 2). A QUERY ENGINE rather than a store: what the
+  // Trino (issue #424 Phase 2). A QUERY ENGINE rather than a store: what the
   // connection's `database` field pins is a Trino CATALOG (`tpch`, `hive`, `iceberg`),
   // the way a PostgreSQL connection pins a database, and the schemas inside it are the
   // schema level. PrestoDB is deliberately NOT this id - the transport builds its

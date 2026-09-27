@@ -1691,4 +1691,4 @@ because the provider exposes no `cancelQuery`
 - `_cat/indices`: <https://docs.opensearch.org/latest/api-reference/cat/cat-indices/>
 - Query insights (`top_queries`): <https://docs.opensearch.org/latest/observing-your-data/query-insights/index/>
 - Apache License, Version 2.0: <https://www.apache.org/licenses/LICENSE-2.0>
-- Sibling provider docs: [PostgreSQL](./postgres.md) · [MySQL](./mysql.md) · [Oracle](./oracle.md) · [SQL Server](./mssql.md) · [SQLite](./sqlite.md) · [MongoDB](./mongodb.md) · [Couchbase](./couchbase.md) · [ClickHouse](./clickhouse.md) · [Apache Druid](./druid.md) · [Apache Trino](./trino.md) · [Elasticsearch](./elasticsearch.md) · [Redis](./redis.md) · [LibreDB](./libredb.md)
+- Sibling provider docs: [PostgreSQL](./postgres.md) · [MySQL](./mysql.md) · [Oracle](./oracle.md) · [SQL Server](./mssql.md) · [SQLite](./sqlite.md) · [MongoDB](./mongodb.md) · [Couchbase](./couchbase.md) · [ClickHouse](./clickhouse.md) · [Apache Druid](./druid.md) · [Trino](./trino.md) · [Elasticsearch](./elasticsearch.md) · [Redis](./redis.md) · [LibreDB](./libredb.md)

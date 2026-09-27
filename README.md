@@ -111,7 +111,7 @@ You create a Postgres on a managed platform. It is ready in forty seconds. Then 
 
 LibreDB Studio goes the other way. It deploys next to the data: a container, a Helm chart, an operator, a one-click template on your PaaS, or `npm i @libredb/studio` inside your own product. Nothing has to face outward.
 
-Eighteen engines share one interface: PostgreSQL, MySQL, Oracle, SQL Server, SQLite, libSQL, DuckDB, MongoDB, Redis, Couchbase, ClickHouse, Druid, Elasticsearch, OpenSearch, Apache Trino, Apache Cassandra, Prometheus and Apache Kafka, with the same explorer everywhere, and ER diagrams, schema diff and monitoring wherever the engine has something to report. Three of the eighteen are read-only because their own SQL is: Druid, Elasticsearch and OpenSearch have no `UPDATE` and no `CREATE TABLE` in the grammar at all, so those controls are reported as unsupported instead of failing when used. Cassandra is the one that reports the least on purpose: it publishes no row count and no size that is true, so the object browser shows neither rather than showing a number that is wrong; the estimate it does publish counts partitions from flushed files, and it read 143 for a 500-row table. Trino is the other odd one: it is a query engine rather than a database, so it declares no keys and no indexes and reports the bytes as belonging to the systems behind its connectors.
+Eighteen engines share one interface: PostgreSQL, MySQL, Oracle, SQL Server, SQLite, libSQL, DuckDB, MongoDB, Redis, Couchbase, ClickHouse, Druid, Elasticsearch, OpenSearch, Trino, Apache Cassandra, Prometheus and Apache Kafka, with the same explorer everywhere, and ER diagrams, schema diff and monitoring wherever the engine has something to report. Three of the eighteen are read-only because their own SQL is: Druid, Elasticsearch and OpenSearch have no `UPDATE` and no `CREATE TABLE` in the grammar at all, so those controls are reported as unsupported instead of failing when used. Cassandra is the one that reports the least on purpose: it publishes no row count and no size that is true, so the object browser shows neither rather than showing a number that is wrong; the estimate it does publish counts partitions from flushed files, and it read 143 for a 500-row table. Trino is the other odd one: it is a query engine rather than a database, so it declares no keys and no indexes and reports the bytes as belonging to the systems behind its connectors.
 Apache Kafka is the newest: a JSON read request reads a topic's messages over the Kafka protocol, by partition, offset or timestamp, and the browser shows topics, consumer groups with their lag, and brokers, read-only by construction, because Studio never produces, commits an offset, joins a consumer group or creates a topic.
 Neither it nor Prometheus is SQL at all, as MongoDB and Redis are not: Prometheus speaks PromQL over the Prometheus HTTP API, browses metrics, rules and scrape targets, and is read-only because Studio calls none of the server's write or admin endpoints.
 
@@ -291,7 +291,7 @@ Standalone application only: the embedded `@libredb/studio` package carries no a
 | **Apache Druid** | none — HTTP (`POST /druid/v2/sql`, Router port 8888 or Broker 8082) | Read-only SQL IDE, native-query EXPLAIN plan trees, `INFORMATION_SCHEMA` datasource introspection, `sys.*` monitoring (segments, servers, ingestion tasks). Druid SQL has no `UPDATE`, no `DELETE` and no `CREATE TABLE`, and nothing it can do counts as a maintenance operation — a datasource changes through ingestion, not from the editor |
 | **Elasticsearch** | none — HTTP (`POST /_sql?format=json`, port 9200) | Read-only SQL IDE, mapping-driven index/field explorer, cluster health plus per-index document counts and store sizes. No EXPLAIN, no maintenance operation, no slow-query or session panel: those live in log files and stats APIs the SQL surface does not reach. Elasticsearch SQL also has no `OFFSET`, so a second page of results cannot be requested — narrow the statement or raise the limit instead |
 | **OpenSearch** | none — HTTP (`POST /_plugins/_sql`, port 9200) | The same read-only SQL IDE and explorer, from the same provider module. `LIMIT n OFFSET m` does work here, so paging does |
-| **Apache Trino** | none — HTTP (the client protocol, `POST /v1/statement`, port 8080) | Full SQL IDE across every configured catalog, `EXPLAIN (FORMAT JSON)` plan trees, `information_schema` schema tree for the catalog the connection pins, `system.runtime` + `jmx` monitoring, real `SHOW STATS` row counts, query cancellation and `kill_query` maintenance. Trino is a query engine and stores nothing, so it declares no primary keys, no foreign keys and no indexes anywhere — the ER diagram draws boxes and no edges, inline row editing is switched off, and the size panels name the catalogs rather than inventing a footprint. A failed statement arrives as HTTP 200, and a password is refused over plain HTTP even on a cluster with authentication disabled |
+| **Trino** | none — HTTP (the client protocol, `POST /v1/statement`, port 8080) | Full SQL IDE across every configured catalog, `EXPLAIN (FORMAT JSON)` plan trees, `information_schema` schema tree for the catalog the connection pins, `system.runtime` + `jmx` monitoring, real `SHOW STATS` row counts, query cancellation and `kill_query` maintenance. Trino is a query engine and stores nothing, so it declares no primary keys, no foreign keys and no indexes anywhere — the ER diagram draws boxes and no edges, inline row editing is switched off, and the size panels name the catalogs rather than inventing a footprint. A failed statement arrives as HTTP 200, and a password is refused over plain HTTP even on a cluster with authentication disabled |
 | **Apache Cassandra** | `cassandra-driver` (pure JS, no native module) | CQL IDE over the native protocol (port 9042), keyspace browser marking partition and clustering keys, `system_views` overview, uptime and running statements. No EXPLAIN (the keyword is not in CQL), no cancellation (the protocol has none), no maintenance (every operation is a `nodetool` action), and **no row counts or sizes**: the only figures Cassandra publishes are partition estimates from flushed files and whole mebibytes, so neither is shown rather than shown wrong |
 | **Prometheus** | none, HTTP (the Prometheus HTTP API, port 9090) | PromQL editor whose text reaches the server unchanged, results in the grid and the chart tab (a stepped subquery such as `rate(x[5m])[1h:1m]` charts as lines over its timestamps: the tab opens on the first series, more are added from the Y-Axis menu, one line each, and at most eight are drawn at once, past which it says "Showing first 8 of N series"; but the chart draws a missing sample, and a `NaN` or `Inf` among numbers, at 0, so a raw range over targets scraped at their own offsets charts false zeros), a metric browser with label names as columns and metadata as the source, rule groups with recording and alerting rules (a firing alert is marked in the tree), scrape pools and targets (a down target is marked), and health, version, uptime and TSDB statistics. Read-only by design: no admin API, no remote write, no EXPLAIN (the parse endpoint is experimental) and no maintenance. A credential over plain HTTP is sent rather than refused, so enable TLS across a network you do not control |
 | **Apache Kafka** | `@platformatic/kafka` (pure TypeScript, port 9092) | A JSON read request that reads a topic by partition, offset or timestamp, from its earliest offset or its latest messages, with keys, values and headers decoded as JSON, text or base64 and a Confluent-framed value labelled with its schema id; a topic browser with partitions and non-default configs (an offline or under-replicated topic is marked), consumer groups of both protocols with lag per partition, brokers with their configs, and health, topic counts and size on disk. Read-only by construction: no produce, no commit, no group membership and no topic creation. TLS with a custom CA and client certificates, and SASL PLAIN or SCRAM over TLS only; no SSH tunnel, because the brokers are reached at the addresses they advertise |
@@ -320,7 +320,7 @@ Standalone application only: the embedded `@libredb/studio` package carries no a
 | **Editor** | Monaco Editor (VS Code Engine) | Web |
 | **AI** | Multi-Model (Gemini, OpenAI, Ollama, Custom) | Web, Mobile |
 | **Auth** | JWT (`jose`) + OIDC (`openid-client`), PKCE, Role Mapping | Web, Mobile |
-| **Database** | PostgreSQL, MySQL, Oracle, SQL Server, SQLite, libSQL, DuckDB, MongoDB, Couchbase, ClickHouse, Apache Druid, Elasticsearch, OpenSearch, Apache Trino, Apache Cassandra, Redis, Prometheus, Apache Kafka | Web, Mobile |
+| **Database** | PostgreSQL, MySQL, Oracle, SQL Server, SQLite, libSQL, DuckDB, MongoDB, Couchbase, ClickHouse, Apache Druid, Elasticsearch, OpenSearch, Trino, Apache Cassandra, Redis, Prometheus, Apache Kafka | Web, Mobile |
 | **Charts** | Recharts (Bar, Line, Pie, Area, Scatter, Histogram, Stacked) | Web, Mobile |
 | **ERD** | React Flow, ELK.js (auto-layout) | Web |
 | **State/Grid** | TanStack Table & Virtual | Web, Mobile |
@@ -411,7 +411,7 @@ journalctl -u libredb-studio
 
   ### Prerequisites
   - [Bun](https://bun.sh/) (Recommended) or Node.js 24+
-  - A target database to query (PostgreSQL, MySQL, Oracle, SQL Server, SQLite, libSQL, DuckDB, MongoDB, Couchbase, ClickHouse, Apache Druid, Elasticsearch, OpenSearch, Apache Trino, Apache Cassandra, Redis, Prometheus, or Apache Kafka)
+  - A target database to query (PostgreSQL, MySQL, Oracle, SQL Server, SQLite, libSQL, DuckDB, MongoDB, Couchbase, ClickHouse, Apache Druid, Elasticsearch, OpenSearch, Trino, Apache Cassandra, Redis, Prometheus, or Apache Kafka)
 
   ### Quick Start (Local)
   1. **Clone & Install**
@@ -536,7 +536,7 @@ docker compose -f database-compose.yml --profile druid down -v
 | **Oracle** | localhost | 1521 | system | Password123! | freepdb1 |
 | **MongoDB** | localhost | 27017 | admin | admin | — |
 | **Apache Druid** | localhost | 8888 (Router) or 8082 (Broker) | — | — | — (one catalog, always `druid`) |
-| **Apache Trino** | localhost | 8080 | — | — | `tpch` (a *catalog*; `tpcds`, `memory`, `system` and `jmx` are configured too) |
+| **Trino** | localhost | 8080 | — | — | `tpch` (a *catalog*; `tpcds`, `memory`, `system` and `jmx` are configured too) |
 | **Prometheus** | localhost | 9090 | none | none | none (one server is one TSDB) |
 | **Prometheus** with basic auth (profile `prometheus-auth`) | localhost | 9091 | studio | studio-probe | none |
 | **Apache Kafka** | localhost | 9092 | none | none | none (one connection is one cluster) |
@@ -953,7 +953,7 @@ Open **http://localhost:3000** and log in with the admin credentials the first r
 - [ ] **Phase 18**: Server-Enforced Data Masking (SQL output-lineage, deployment-global policy, fail-closed API masking, alias/aggregate coverage).
 - [x] **Phase 19**: Driver-Free Providers — Couchbase (SQL++ over the Query REST API), the first provider that adds no runtime dependency. Pattern documented in [Adding a Provider](docs/ADDING_A_PROVIDER.md).
 - [x] **Phase 20**: Analytics Databases — ClickHouse ([#264](https://github.com/libredb/libredb-studio/issues/264)) and Apache Druid ([#265](https://github.com/libredb/libredb-studio/issues/265)), both driver-free over HTTP. Druid is read-only by nature — no `UPDATE`, no `DELETE`, no `CREATE TABLE` — so it also demonstrates a provider that reports absent capabilities honestly instead of offering controls that can only fail.
-- [x] **Phase 21**: Federated Query — Apache Trino ([#424](https://github.com/libredb/libredb-studio/issues/424), Phase 2), driver-free over Trino's own client protocol. The product question that held it up is answered: a connection pins **one catalog**, exactly as a PostgreSQL connection pins one database, and the tree stays two levels — fanning `information_schema` across every catalog is unbounded, since `jmx.current` alone publishes one table per MBean. Cross-catalog queries still work in the editor by qualifying names in full. PrestoDB is a separate future type-id; the transport already builds its headers from a dialect prefix so that is a descriptor, not a rewrite.
+- [x] **Phase 21**: Federated Query — Trino ([#424](https://github.com/libredb/libredb-studio/issues/424), Phase 2), driver-free over Trino's own client protocol. The product question that held it up is answered: a connection pins **one catalog**, exactly as a PostgreSQL connection pins one database, and the tree stays two levels — fanning `information_schema` across every catalog is unbounded, since `jmx.current` alone publishes one table per MBean. Cross-catalog queries still work in the editor by qualifying names in full. PrestoDB is a separate future type-id; the transport already builds its headers from a dialect prefix so that is a descriptor, not a rewrite.
 
 ---
 
@@ -1055,6 +1055,16 @@ states what "done" looks like as a command you can run yourself.
 
 Distributed under the MIT License. See `LICENSE` for more information. One direct dependency,
 `elkjs`, is under the reciprocal EPL-2.0; see [`docs/THIRD_PARTY_LICENSES.md`](docs/THIRD_PARTY_LICENSES.md).
+
+## Trademarks
+
+Apache, [Apache Kafka](https://kafka.apache.org/), Kafka, [Apache Cassandra](https://cassandra.apache.org/),
+Cassandra, [Apache Druid](https://druid.apache.org/), Druid, [Apache Doris](https://doris.apache.org/),
+Doris, [Apache Cloudberry](https://cloudberry.apache.org/), Cloudberry and the Apache feather logo are
+either registered trademarks or trademarks of [The Apache Software Foundation](https://www.apache.org/)
+in the United States and/or other countries. LibreDB Studio has no affiliation with and is not
+endorsed by The Apache Software Foundation. All other product names are trademarks of their
+respective owners and are used here only to name the systems LibreDB Studio connects to.
 
 ---
 

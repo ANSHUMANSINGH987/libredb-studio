@@ -1,5 +1,5 @@
 /**
- * Apache Trino Database Provider (issue #424, Phase 2)
+ * Trino Database Provider (issue #424, Phase 2)
  *
  * Standard SQL over Trino's client protocol with no runtime dependency: every
  * statement, catalog read and metric goes through the `TrinoTransport` seam, so

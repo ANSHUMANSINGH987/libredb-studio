@@ -20,7 +20,7 @@ in lockstep with the code (see the tri-sync rule in [`../../CLAUDE.md`](../../CL
 | Apache Druid | `druid` | SQL (analytics) | none (HTTP: SQL endpoint) | SQL (Calcite) | [druid.md](./druid.md) |
 | Elasticsearch | `elasticsearch` | SQL (search) | none (HTTP: `_sql` + REST) | SQL (Elasticsearch SQL) | [elasticsearch.md](./elasticsearch.md) |
 | OpenSearch | `opensearch` | SQL (search) | none (HTTP: `_plugins/_sql` + REST) | SQL (OpenSearch SQL plugin) | [opensearch.md](./opensearch.md) |
-| Apache Trino | `trino` | SQL (federated query engine) | none (HTTP: the client protocol, `POST /v1/statement`) | SQL (Trino) | [trino.md](./trino.md) |
+| Trino | `trino` | SQL (federated query engine) | none (HTTP: the client protocol, `POST /v1/statement`) | SQL (Trino) | [trino.md](./trino.md) |
 | Apache Cassandra | `cassandra` | SQL (wide-column) | `cassandra-driver` (pure JS) | SQL-shaped (CQL) | [cassandra.md](./cassandra.md) |
 | Prometheus | `prometheus` | Time series | none (HTTP: the Prometheus HTTP API, `/api/v1/*`) | PromQL | [prometheus.md](./prometheus.md) |
 | Apache Kafka | `kafka` | Stream | `@platformatic/kafka` (pure TypeScript) | JSON (a read request) | [kafka.md](./kafka.md) |
@@ -272,7 +272,7 @@ provider's integration pass.
 | Apache Druid | `druid-router` | localhost | 8888 | *none* | *none* | *none* | `druid` |
 | Elasticsearch | `elasticsearch` | localhost | 9200 | *none* | *none* | *none* | — |
 | OpenSearch | `opensearch` | localhost | **9201** | *none* | *none* | *none* | — |
-| Apache Trino | `trino` | localhost | 8080 | *none* | *none* | `tpch` (catalog) | — |
+| Trino | `trino` | localhost | 8080 | *none* | *none* | `tpch` (catalog) | — |
 | Apache Cassandra | `cassandra` | localhost | 9042 | *none* | *none* | `probe` (keyspace) | — |
 | Prometheus | `prometheus` | localhost | 9090 | *none* | *none* | *none* | *none* |
 | Apache Kafka | `kafka` | localhost | 9092 | *none* | *none* | *none* | *none* |
@@ -436,7 +436,7 @@ in the table above:
 | Apache Druid | `druid-router` | 8888 |
 | Elasticsearch | `elasticsearch` | 9200 |
 | OpenSearch | `opensearch` | **9200** |
-| Apache Trino | `trino` | 8080 |
+| Trino | `trino` | 8080 |
 
 > **OpenSearch is 9200 here, not 9201.** The 9201 in the table above is a *host* port published to
 > dodge a collision with the `elasticsearch` service. Inside the network there is no collision, so the

@@ -127,7 +127,7 @@ LibreDB Studio 走另一条路：**工具去找数据，而不是把数据搬来
 
 LibreDB Studio 走的是另一条路。它部署在数据旁边：一个容器、一个 Helm chart、一个 operator、一份 PaaS 一键模板，或者用 `npm i @libredb/studio` 嵌进你自己的产品。没有任何东西需要朝外暴露。
 
-十八种引擎共用一个界面，PostgreSQL、MySQL、Oracle、SQL Server、SQLite、libSQL、DuckDB、MongoDB、Redis、Couchbase、ClickHouse、Druid、Elasticsearch、OpenSearch、Apache Trino、Apache Cassandra、Prometheus 和 Apache Kafka，处处是同一套浏览器，凡是引擎有东西可报的地方都有 ER 图、schema 对比和监控。十八种里有三种是只读的，因为它们自己的 SQL 就是只读的：Druid、Elasticsearch 和 OpenSearch 的文法里根本没有 `UPDATE`，也没有 `CREATE TABLE`，所以那些控件被如实报告为不支持，而不是等到用的时候才失败。Cassandra 是其中刻意报告得最少的一个：它给出的任何行数和容量都不真实，所以对象浏览器索性两者都不显示，而不是显示一个错的数字；它确实会发布的分区估算来自已刷盘的文件，实测一张 500 行的表被读作 143。Trino 是另一个异类：它是查询引擎而不是数据库，所以不声明任何主键和索引，报告的字节数属于它背后那些连接器所在的系统。
+十八种引擎共用一个界面，PostgreSQL、MySQL、Oracle、SQL Server、SQLite、libSQL、DuckDB、MongoDB、Redis、Couchbase、ClickHouse、Druid、Elasticsearch、OpenSearch、Trino、Apache Cassandra、Prometheus 和 Apache Kafka，处处是同一套浏览器，凡是引擎有东西可报的地方都有 ER 图、schema 对比和监控。十八种里有三种是只读的，因为它们自己的 SQL 就是只读的：Druid、Elasticsearch 和 OpenSearch 的文法里根本没有 `UPDATE`，也没有 `CREATE TABLE`，所以那些控件被如实报告为不支持，而不是等到用的时候才失败。Cassandra 是其中刻意报告得最少的一个：它给出的任何行数和容量都不真实，所以对象浏览器索性两者都不显示，而不是显示一个错的数字；它确实会发布的分区估算来自已刷盘的文件，实测一张 500 行的表被读作 143。Trino 是另一个异类：它是查询引擎而不是数据库，所以不声明任何主键和索引，报告的字节数属于它背后那些连接器所在的系统。
 Apache Kafka 是最新的一个：JSON 读取请求通过 Kafka 协议按分区、偏移量或时间戳读取主题中的消息，浏览器显示主题、带延迟的消费者组和 broker，并且按构造只读，因为 Studio 从不生产消息、提交偏移量、加入消费者组或创建主题。
 Prometheus 和 MongoDB、Redis 一样完全不是 SQL：它通过 Prometheus HTTP API 使用 PromQL，浏览指标、规则和抓取目标，并且是只读的，因为 Studio 不调用服务器的任何写入或管理端点。
 
@@ -264,7 +264,7 @@ Studio 最主要的 AI 界面是编辑器旁边的 **Agent 侧栏**，下面列�
 | **Apache Druid** | 无驱动，纯 HTTP（`POST /druid/v2/sql`，Router 端口 8888 或 Broker 8082） | 只读 SQL IDE、原生查询 EXPLAIN 计划树、`INFORMATION_SCHEMA` 数据源自省、`sys.*` 监控（segment、server、摄取任务）。Druid SQL 没有 `UPDATE`、没有 `DELETE`、也没有 `CREATE TABLE`，它能做的事没有一件算维护操作：数据源靠摄取变化，而不是从编辑器改 |
 | **Elasticsearch** | 无驱动，纯 HTTP（`POST /_sql?format=json`，9200 端口） | 只读 SQL IDE、基于 mapping 的索引/字段浏览器、集群健康，以及每个索引的文档数和存储大小。没有 EXPLAIN、没有维护操作、没有慢查询或会话面板：它们存在于日志文件和统计 API 里，SQL 这层接口够不到。Elasticsearch SQL 也没有 `OFFSET`，所以无法请求第二页结果，只能收窄语句或调高上限 |
 | **OpenSearch** | 无驱动，纯 HTTP（`POST /_plugins/_sql`，9200 端口） | 与 Elasticsearch 同一个 provider 模块，同样的只读 SQL IDE 与浏览器。这里 `LIMIT n OFFSET m` 确实可用，所以分页也可用 |
-| **Apache Trino** | 无驱动，纯 HTTP（客户端协议，`POST /v1/statement`，8080 端口） | 面向全部已配置 catalog 的完整 SQL IDE、`EXPLAIN (FORMAT JSON)` 计划树、连接所固定 catalog 的 `information_schema` schema 树、`system.runtime` + `jmx` 监控、`SHOW STATS` 给出的真实行数、查询取消与 `kill_query` 维护。Trino 是查询引擎，不存储任何东西，因此在任何地方都不声明主键、外键和索引：ER 图只画方框不画连线，行内编辑被关闭，容量面板列出的是 catalog 而不是臆造的占用量。失败的语句会以 HTTP 200 返回，而且即使在关闭了认证的集群上，明文 HTTP 上的密码也会被拒绝 |
+| **Trino** | 无驱动，纯 HTTP（客户端协议，`POST /v1/statement`，8080 端口） | 面向全部已配置 catalog 的完整 SQL IDE、`EXPLAIN (FORMAT JSON)` 计划树、连接所固定 catalog 的 `information_schema` schema 树、`system.runtime` + `jmx` 监控、`SHOW STATS` 给出的真实行数、查询取消与 `kill_query` 维护。Trino 是查询引擎，不存储任何东西，因此在任何地方都不声明主键、外键和索引：ER 图只画方框不画连线，行内编辑被关闭，容量面板列出的是 catalog 而不是臆造的占用量。失败的语句会以 HTTP 200 返回，而且即使在关闭了认证的集群上，明文 HTTP 上的密码也会被拒绝 |
 | **Apache Cassandra** | `cassandra-driver`（纯 JavaScript，无原生模块） | 基于原生协议（9042 端口）的 CQL IDE、标注分区键与聚簇键的 keyspace 浏览器、`system_views` 概览、运行时长与正在执行的语句。没有 EXPLAIN（CQL 里没有这个关键字）、没有取消（协议里没有）、没有维护（每个操作都是 `nodetool` 动作），而且**不显示任何行数与容量**：Cassandra 发布的唯一数字只有来自已刷盘文件的分区估算和整数 mebibyte，所以两者宁可不显示，也不显示错的 |
 | **Prometheus** | 无驱动，纯 HTTP（Prometheus HTTP API，9090 端口） | PromQL 编辑器，文本原样发送到服务器；结果进入表格和图表页（像 `rate(x[5m])[1h:1m]` 这样带步长的子查询以时间戳为横轴画成折线：图表页起初只画第一个序列，其余序列可在 Y-Axis 菜单中勾选添加，每个序列一条线，同时最多画八条，超出时显示“Showing first 8 of N series”；但图表会把缺失的样本以及数值中的 `NaN` 或 `Inf` 画成 0，所以在各目标抓取时间错开的原始范围查询上会画出虚假的零值）；指标浏览器以标签名为列、以元数据为源；规则组及其记录规则和告警规则，触发中的告警在树中标出；抓取池和抓取目标，宕机的目标在树中标出；以及健康、版本、运行时长和 TSDB 统计。按设计只读：不调用管理 API，不做 remote write，没有 EXPLAIN（解析端点仍是实验性的），也没有维护操作。凭据在明文 HTTP 上会照常发送而不会被拒绝，跨越你无法控制的网络时请启用 TLS |
 | **Apache Kafka** | `@platformatic/kafka`（纯 TypeScript，9092 端口） | JSON 读取请求，按分区、偏移量或时间戳读取主题，或从最早偏移量读取，或读取最新消息；键、值和消息头按 JSON、文本或 base64 解码，Confluent 格式的值标注其 schema id；主题浏览器显示分区和非默认配置（离线或副本不足的主题会被标出），两种协议的消费者组及每个分区的延迟，broker 及其配置，以及健康状态、主题数量和磁盘占用。按构造只读：不生产消息、不提交偏移量、不加入消费者组、不创建主题。支持自定义 CA 与客户端证书的 TLS，SASL PLAIN 或 SCRAM 只能走 TLS；不支持 SSH 隧道，因为 broker 通过它们通告的地址访问 |
@@ -291,7 +291,7 @@ Studio 最主要的 AI 界面是编辑器旁边的 **Agent 侧栏**，下面列�
 | **编辑器** | Monaco Editor（VS Code 内核） | Web |
 | **AI** | 多模型（Gemini、OpenAI、Ollama、自定义） | Web、移动端 |
 | **认证** | JWT（`jose`）+ OIDC（`openid-client`）、PKCE、角色映射 | Web、移动端 |
-| **数据库** | PostgreSQL、MySQL、Oracle、SQL Server、SQLite、libSQL、DuckDB、MongoDB、Couchbase、ClickHouse、Apache Druid、Elasticsearch、OpenSearch、Apache Trino、Apache Cassandra、Redis、Prometheus、Apache Kafka | Web、移动端 |
+| **数据库** | PostgreSQL、MySQL、Oracle、SQL Server、SQLite、libSQL、DuckDB、MongoDB、Couchbase、ClickHouse、Apache Druid、Elasticsearch、OpenSearch、Trino、Apache Cassandra、Redis、Prometheus、Apache Kafka | Web、移动端 |
 | **图表** | Recharts（柱状图、折线图、饼图、面积图、散点图、直方图、堆叠图） | Web、移动端 |
 | **ERD** | React Flow、ELK.js（自动布局） | Web |
 | **状态与表格** | TanStack Table 与 Virtual | Web、移动端 |
@@ -378,7 +378,7 @@ journalctl -u libredb-studio
 
 ### 前置条件
 - [Bun](https://bun.sh/)（推荐）或 Node.js 24+
-- 一个可查询的目标数据库（PostgreSQL、MySQL、Oracle、SQL Server、SQLite、libSQL、DuckDB、MongoDB、Couchbase、ClickHouse、Apache Druid、Elasticsearch、OpenSearch、Apache Trino、Apache Cassandra、Redis、Prometheus 或 Apache Kafka）
+- 一个可查询的目标数据库（PostgreSQL、MySQL、Oracle、SQL Server、SQLite、libSQL、DuckDB、MongoDB、Couchbase、ClickHouse、Apache Druid、Elasticsearch、OpenSearch、Trino、Apache Cassandra、Redis、Prometheus 或 Apache Kafka）
 
 ### 快速开始（本地）
 1. **克隆并安装**
@@ -521,7 +521,7 @@ docker compose -f database-compose.yml --profile druid down -v
 | **Oracle** | localhost | 1521 | system | Password123! | freepdb1 |
 | **MongoDB** | localhost | 27017 | admin | admin | 无 |
 | **Apache Druid** | localhost | 8888（Router）或 8082（Broker） | 无 | 无 | 无（只有一个 catalog，始终是 `druid`） |
-| **Apache Trino** | localhost | 8080 | 无 | 无 | `tpch`（是一个 *catalog*；`tpcds`、`memory`、`system` 和 `jmx` 也已配置） |
+| **Trino** | localhost | 8080 | 无 | 无 | `tpch`（是一个 *catalog*；`tpcds`、`memory`、`system` 和 `jmx` 也已配置） |
 
 ### PostgreSQL 示例数据
 
@@ -921,7 +921,7 @@ docker compose -f docker-compose.vault-demo.yml up
 - [ ] **阶段 18**：服务端强制数据脱敏（SQL 输出血缘、部署级全局策略、fail-closed 的 API 脱敏、别名/聚合覆盖）。
 - [x] **阶段 19**：免驱动 provider：Couchbase（通过 Query REST API 的 SQL++），第一个不引入任何运行时依赖的 provider。这套模式记录在[新增 provider](docs/ADDING_A_PROVIDER.md) 中。
 - [x] **阶段 20**：分析型数据库：ClickHouse（[#264](https://github.com/libredb/libredb-studio/issues/264)）与 Apache Druid（[#265](https://github.com/libredb/libredb-studio/issues/265)），两者都通过 HTTP 且免驱动。Druid 天生只读（没有 `UPDATE`、没有 `DELETE`、没有 `CREATE TABLE`），所以它同时展示了一个诚实报告自身能力缺失的 provider：它不会给出那些注定失败的操作入口。
-- [x] **阶段 21**：联邦查询：Apache Trino（[#424](https://github.com/libredb/libredb-studio/issues/424)，阶段 2），通过 Trino 自己的客户端协议实现且免驱动。一直挡住它的那个产品问题有了答案：一个连接固定**一个 catalog**，正如一个 PostgreSQL 连接固定一个数据库，而树保持两层：把 `information_schema` 铺开到每个 catalog 是无界的，因为仅 `jmx.current` 就为每个 MBean 发布一张表。跨 catalog 查询在编辑器里仍然可用，只要把名字完整限定。PrestoDB 将是另一个未来的 type-id；传输层已经从方言前缀构建响应头，所以那只是一个描述符，不是重写。
+- [x] **阶段 21**：联邦查询：Trino（[#424](https://github.com/libredb/libredb-studio/issues/424)，阶段 2），通过 Trino 自己的客户端协议实现且免驱动。一直挡住它的那个产品问题有了答案：一个连接固定**一个 catalog**，正如一个 PostgreSQL 连接固定一个数据库，而树保持两层：把 `information_schema` 铺开到每个 catalog 是无界的，因为仅 `jmx.current` 就为每个 MBean 发布一张表。跨 catalog 查询在编辑器里仍然可用，只要把名字完整限定。PrestoDB 将是另一个未来的 type-id；传输层已经从方言前缀构建响应头，所以那只是一个描述符，不是重写。
 
 ## 社区与质量
 

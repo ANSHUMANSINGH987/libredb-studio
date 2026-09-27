@@ -4,7 +4,7 @@ This document outlines the architectural patterns, tech stack, and system design
 
 ## System Overview
 
-LibreDB Studio is a hybrid, cloud-native database management tool that provides an IDE-like experience in the browser. It supports **19 database backends** via a Strategy Pattern abstraction: PostgreSQL, MySQL, SQLite, libSQL, DuckDB, Oracle, SQL Server, MongoDB, Couchbase, ClickHouse, Apache Druid, Apache Trino, Apache Cassandra, Elasticsearch, OpenSearch, Redis, Prometheus, Apache Kafka, LibreDB. The count is the `SHIPPED` record in [`src/lib/db/compatibility.ts`](../src/lib/db/compatibility.ts), which is exhaustive over `DatabaseType`; `elasticsearch` and `opensearch` are two ids served by one provider module.
+LibreDB Studio is a hybrid, cloud-native database management tool that provides an IDE-like experience in the browser. It supports **19 database backends** via a Strategy Pattern abstraction: PostgreSQL, MySQL, SQLite, libSQL, DuckDB, Oracle, SQL Server, MongoDB, Couchbase, ClickHouse, Apache Druid, Trino, Apache Cassandra, Elasticsearch, OpenSearch, Redis, Prometheus, Apache Kafka, LibreDB. The count is the `SHIPPED` record in [`src/lib/db/compatibility.ts`](../src/lib/db/compatibility.ts), which is exhaustive over `DatabaseType`; `elasticsearch` and `opensearch` are two ids served by one provider module.
 
 It runs in two modes: as a **standalone Next.js app** and as an **embedded npm package** (`@libredb/studio`) consumed by libredb-platform. See [§4.6](#46-workspace-abstraction-npm-package-embedding).
 
@@ -52,7 +52,7 @@ graph TD
         SQL --> ClickHouse[(ClickHouse)]
         SQL --> Druid[(Apache Druid)]
         SQL --> Search[(Elasticsearch / OpenSearch)]
-        SQL --> Trino[(Apache Trino)]
+        SQL --> Trino[(Trino)]
         SQL --> Cassandra[(Apache Cassandra)]
         SQL --> LibSQL[(libSQL)]
         SQL --> DuckDB[(DuckDB)]
