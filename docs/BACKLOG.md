@@ -380,46 +380,28 @@ One test per transport pins that a supplied CA and a `verify-*` mode reach the r
 
 ### D39. A slow-query source nobody could read is still a row, and on the other path it is silence
 
-Found 2026-08-27 by the audit that closed the curated health projection's cap-as-count defect. #512
-removed MySQL's fabricated "Performance schema not available" row; three providers still ship the
-same shape, in the same field:
+Found 2026-08-27 by the audit that closed the curated health projection's cap-as-count defect.
+#512 removed MySQL's fabricated "Performance schema not available" row; four providers still ship the same shape, in the same field:
 
-- `src/lib/db/providers/sql/postgres.ts:1241` - a database without `pg_stat_statements` answers
-  `[{ query: "pg_stat_statements extension not enabled", calls: 0, avgTime: "N/A" }]`.
-- `src/lib/db/providers/document/mongodb.ts:785` - a database whose profiler is off answers
-  `[{ query: "Profiler not enabled. Run db.setProfilingLevel(1) to enable." }]`, and the outer catch
-  at `:830` answers `[{ query: "Error fetching health info" }]` for a read that failed entirely.
-- `src/lib/db/providers/sql/sqlite.ts:707-717` - EVERY SQLite database answers two synthetic rows,
-  `Integrity: OK|FAILED` and `Journal Mode: <mode>`, about statements that were never executed.
+- `getHealth()` in `src/lib/db/providers/sql/postgres.ts` - a database without `pg_stat_statements` answers `[{ query: "pg_stat_statements extension not enabled", calls: 0, avgTime: "N/A" }]`.
+- `getHealth()` in `src/lib/db/providers/document/mongodb.ts` - a database whose profiler is off answers `[{ query: "Profiler not enabled. Run db.setProfilingLevel(1) to enable." }]`, and the outer catch answers `[{ query: "Error fetching health info" }]` for a read that failed entirely.
+- `getHealth()` in `src/lib/db/providers/sql/sqlite.ts` - EVERY SQLite database answers two synthetic rows, `Integrity: OK|FAILED` and `Journal Mode: <mode>`, about statements that were never executed.
+- `readHealth()` in `src/lib/db/providers/sql/libsql/introspect.ts` - libSQL answers the same two synthetic rows, `Integrity: OK|FAILED` and `Journal Mode: <mode>`.
 
-A sentence wearing a row's clothes is the fabrication the absence rule (#477) forbids, and here it is
-worse than a zero: a caller counting the list gets 1, 1 and 2 rather than 0. Nothing counts it in the
-app any more - the agent's curated reading stopped, and `HealthInfo.slowQueries` now has no
-production consumer at all - but `POST /api/db/health` serialises the whole `HealthInfo`
-(`docs/API_DOCS.md`), so anyone embedding `@libredb/studio` and reading that body inherits all three.
+A sentence wearing a row's clothes is the fabrication the absence rule (#477) forbids, and here it is worse than a zero: a caller counting the list gets 1, 1, 2, and 2 rather than 0.
+Nothing counts it in the app any more (the agent's curated reading stopped, and `HealthInfo.slowQueries` now has no production consumer at all) but `POST /api/db/health` serialises the whole `HealthInfo` (`docs/API_DOCS.md`), so anyone embedding `@libredb/studio` and reading that body inherits all four.
 
-**The fix is a type change with a 15-type-id blast radius, which is why it is here and not in #512's
-PR.** `HealthInfo.slowQueries` is a required `SlowQuery[]` (`src/lib/db/types.ts`) with no field a
-reason could travel in, so "nobody could look" has no representation. Making it optional the way
-`activeConnections` already is touches every provider, every provider doc and every provider test
-file, and falsifies `src/lib/db/compatibility.ts:267`, `docs/providers/postgres.md:164`,
-`tests/integration/db/postgres-provider.test.ts:1325`, `tests/integration/db/sqlite-provider.test.ts`
-and `tests/helpers/sqlite-node-harness.ts:104`, all of which pin the current sentences.
+**The fix is a type change with a 15-type-id blast radius, which is why it is here and not in #512's PR.**
+`HealthInfo.slowQueries` is a required `SlowQuery[]` (`src/lib/db/types.ts`) with no field a reason could travel in, so "nobody could look" has no representation.
+Making it optional the way `activeConnections` already is touches every provider, every provider doc and every provider test file.
+It falsifies the AlloyDB Omni caveat in `WIRE_COMPATIBLE_ENGINES` (`src/lib/db/compatibility.ts`), section "3.5 Resilient monitoring" of `docs/providers/postgres.md`, the test "pg_stat_statements fallback when extension is not enabled" in `tests/integration/db/postgres-provider.test.ts`, `tests/integration/db/sqlite-provider.test.ts`, `tests/integration/db/sqlite-node-harness.ts`, and `tests/integration/db/libsql-provider.test.ts` and `tests/unit/db/libsql/introspect.test.ts`, all of which pin the current sentences.
 
-**The other path swallows instead of fabricating, and that is not better.** On the `slow-queries`
-reading the agent actually uses, `src/lib/db/providers/keyvalue/redis.ts:622-624` and
-`src/lib/db/providers/document/mongodb.ts:1041-1043` `return []` from their catch where MySQL now
-rejects. So a denied grant reaches the model as an empty reading, and the run prompt tells it
-`"A reading that comes back EMPTY is an answer, not a failure - no blocked session, no slow query,
-no unused index is what a healthy server looks like"` (`src/lib/agent/investigation.ts:1485`). It
-also costs the operator the reason: `getMonitoringData` records `errors.slowQueries` from a REJECTION
-(`src/lib/db/base-provider.ts:147`), and a resolved `[]` records nothing, so the panel says "no slow
-queries" where the truth is that the profiler is off.
+**The other path swallows instead of fabricating, and that is not better.**
+On the `slow-queries` reading the agent actually uses, `getSlowQueries()` in `src/lib/db/providers/keyvalue/redis.ts` and in `src/lib/db/providers/document/mongodb.ts` `return []` from their catch where MySQL now rejects.
+So a denied grant reaches the model as an empty reading, and `WORKFLOW_TOOL_RULES` in `src/lib/agent/investigation.ts` tells it `"A reading that comes back EMPTY is an answer, not a failure - no blocked session, no slow query, no unused index is what a healthy server looks like"`.
+It also costs the operator the reason: `getMonitoringData()` in `src/lib/db/base-provider.ts` records `errors.slowQueries` from a REJECTION, and a resolved `[]` records nothing, so the panel says "no slow queries" where the truth is that the profiler is off.
 
-**Done when:** a slow-query source that could not be read is absent-with-a-reason on both paths - no
-provider answers a sentence as a row, and no provider answers `[]` for a read that failed - and the
-count of type-ids the type change touched is stated in the PR rather than discovered during it.
-
+**Done when:** a slow-query source that could not be read is absent-with-a-reason on both paths (no provider answers a sentence as a row, and no provider answers `[]` for a read that failed) and the count of type-ids the type change touched is stated in the PR rather than discovered during it.
 ### D44. `databaseSizeBytes` is fabricated as 0 wherever the size is unknown, in 11 of 18 type-ids
 
 Found 2026-08-27 by the sweep that closed the overview connection count's fabricated zero (D40, PR
